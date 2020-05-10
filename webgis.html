@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>中国疫情确诊人数与人口密度关系</title>
+    <style>
+      html, 
+      body{
+        height: 100%;
+        width: 100%;
+      }
+      #title{
+          background-color: #003366;
+          color: #ffcc66;
+          font-size : 2em;
+          text-align: center;
+          height:6%;
+          width: 100%
+      }
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 94%;
+        width: 80%;
+        float: left;
+      }
+      #qita{
+        background-color: black;
+        height: 94%;
+        width: 20%;
+        float: left;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.15/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <script>
+      require([
+        "esri/Map", 
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/layers/TileLayer",
+        "esri/widgets/Legend",
+        "esri/widgets/ScaleBar",
+        "esri/widgets/Compass",
+        "esri/widgets/Search"
+        ], 
+        
+        
+        
+        function(Map, MapView,FeatureLayer,TileLayer,Legend,ScaleBar,Compass,Search) {
+        
+        var flayer = new FeatureLayer({
+        url: "http://www.arcgisonline.cn/server/rest/services/Hosted/%E5%B0%86%E8%A6%81%E7%B4%A0%E8%BF%9E%E6%8E%A5%E5%88%B0_province_hist_con/FeatureServer"
+        });
+        
+        var tlayer = new TileLayer({
+        url: "https://tiles.arcgis.com/tiles/nzS0F0zdNLvs7nc8/arcgis/rest/services/China_PopDens_2020/MapServer"
+        });
+          
+        var map = new Map({
+          basemap: "streets-night-vector"
+        });
+        
+        map.layers.add(flayer);
+        map.layers.add(tlayer);
+        
+
+        var view = new MapView({
+          container: "viewDiv",
+          map: map,
+          zoom: 3,
+          center: [112,32] // longitude, latitude
+        });
+        
+        var view0 = new MapView({
+          container: "qita"
+        });
+        
+        var legend = new Legend({
+          view: view,
+          layerInfos: [{
+          layer: flayer,
+          title: "图例"
+          
+          }]
+        });
+
+        view0.ui.add(legend, "top-left");
+        
+        var scaleBar = new ScaleBar({
+          view: view,
+          
+          unit:"dual"
+        });
+        view.ui.add(scaleBar, {
+          position: "bottom-left"
+        });
+        
+
+        var compass = new Compass({
+          view: view
+        });
+
+        view.ui.add(compass, "top-right");
+        
+        const searchWidget = new Search({
+          view: view
+        });
+
+        view.ui.add(searchWidget, {
+          position: "top-left",
+          index: 0
+        });
+        
+        var coordsWidget = document.createElement("div");
+      coordsWidget.id = "coordsWidget";
+      coordsWidget.className = "esri-widget esri-component";
+      coordsWidget.style.padding = "7px 15px 5px";
+
+      view0.ui.add(coordsWidget, "bottom-right");
+      
+      function showCoordinates(pt) {
+        var coords = "Lat/Lon " + pt.latitude.toFixed(3) + " " + pt.longitude.toFixed(3) +
+            " | Scale 1:" + Math.round(view.scale * 1) / 1 +
+            " | Zoom " + view.zoom;
+        coordsWidget.innerHTML = coords;
+      }
+      
+      view.watch("stationary", function(isStationary) {
+        showCoordinates(view.center);
+      });
+
+      view.on("pointer-move", function(evt) {
+        showCoordinates(view.toMap({ x: evt.x, y: evt.y }));
+      });
+      });
+    </script>
+  </head>
+
+  <body>
+   
+    <div id="title">中国疫情确诊人数与人口密度关系</div>
+    <div id="viewDiv"></div>
+    <div id="qita"></div>
+    
+  </body>
+</html>
